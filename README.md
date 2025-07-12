@@ -1,4 +1,4 @@
-Our main branch is "backend".
+*Our main branch is "backend".
 
 
 # Problem Statement : StackIt – A Minimal Q&A Forum Platform
