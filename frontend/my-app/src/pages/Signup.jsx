@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -15,6 +15,10 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { signup } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get the page user was trying to access before signup
+  const from = location.state?.from?.pathname || '/questions';
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -86,7 +90,8 @@ const Signup = () => {
       
       if (result.success) {
         toast.success('Account created successfully!');
-        navigate('/questions');
+        // Redirect to the page they were trying to access, or questions page as default
+        navigate(from, { replace: true });
       } else {
         setErrors({ general: result.error || 'An error occurred during signup. Please try again.' });
       }
@@ -115,6 +120,13 @@ const Signup = () => {
           <p className="mt-2 text-gray-600">
             Create your account and start asking questions
           </p>
+          {from !== '/questions' && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                Please create an account to access <strong>{from === '/ask' ? 'Ask Question' : 'this page'}</strong>
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Signup Form */}

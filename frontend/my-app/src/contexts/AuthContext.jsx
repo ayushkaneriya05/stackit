@@ -23,8 +23,9 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('authToken');
       if (token) {
         // For demo purposes, we'll simulate a logged-in user
-        setUser(currentUser);
-        setIsAuthenticated(true);
+        // But for now, let's start with unauthenticated state
+        // setUser(currentUser);
+        // setIsAuthenticated(true);
       }
       setIsLoading(false);
     };

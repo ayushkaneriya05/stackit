@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { questions, answers, currentUser } from '../data/mockData';
+import { useAuth } from '../contexts/AuthContext';
 import AnswerCard from '../components/AnswerCard';
 import RichTextEditor from '../components/RichTextEditor';
 import VotingButtons from '../components/VotingButtons';
@@ -15,11 +16,13 @@ import {
   Eye,
   Calendar,
   User,
-  CheckCircle
+  CheckCircle,
+  LogIn
 } from 'lucide-react';
 
 const QuestionDetail = () => {
   const { id } = useParams();
+  const { isAuthenticated } = useAuth();
   // Convert id to number for proper comparison
   const questionId = parseInt(id);
   const question = questions.find(q => q.id === questionId);
@@ -255,45 +258,73 @@ const QuestionDetail = () => {
         )}
       </div>
 
-      {/* Answer form */}
-      <div className="card p-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">Your Answer</h3>
-        <p className="text-sm text-gray-600 mb-4">
-          Thanks for contributing an answer! Please be sure to answer the question and provide details.
-        </p>
-        
-        <form onSubmit={handleAnswerSubmit}>
-          <RichTextEditor
-            value={newAnswer}
-            onChange={setNewAnswer}
-            placeholder="Write your answer here. Be specific and provide examples if possible..."
-          />
+      {/* Answer form or login prompt */}
+      {isAuthenticated ? (
+        <div className="card p-6">
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">Your Answer</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Thanks for contributing an answer! Please be sure to answer the question and provide details.
+          </p>
           
-          <div className="flex justify-between items-center mt-6">
-            <div className="text-sm text-gray-500">
-              <p>By posting your answer, you agree to our terms of service.</p>
+          <form onSubmit={handleAnswerSubmit}>
+            <RichTextEditor
+              value={newAnswer}
+              onChange={setNewAnswer}
+              placeholder="Write your answer here. Be specific and provide examples if possible..."
+            />
+            
+            <div className="flex justify-between items-center mt-6">
+              <div className="text-sm text-gray-500">
+                <p>By posting your answer, you agree to our terms of service.</p>
+              </div>
+              <button
+                type="submit"
+                disabled={!newAnswer.trim() || newAnswer === '<p><br></p>' || isSubmitting}
+                className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-all ${
+                  newAnswer.trim() && newAnswer !== '<p><br></p>' && !isSubmitting
+                    ? 'bg-primary-500 hover:bg-primary-600 text-white shadow-lg hover:shadow-xl'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Submitting...</span>
+                  </>
+                ) : (
+                  <span>Post Your Answer</span>
+                )}
+              </button>
             </div>
-            <button
-              type="submit"
-              disabled={!newAnswer.trim() || newAnswer === '<p><br></p>' || isSubmitting}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-all ${
-                newAnswer.trim() && newAnswer !== '<p><br></p>' && !isSubmitting
-                  ? 'bg-primary-500 hover:bg-primary-600 text-white shadow-lg hover:shadow-xl'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Submitting...</span>
-                </>
-              ) : (
-                <span>Post Your Answer</span>
-              )}
-            </button>
+          </form>
+        </div>
+      ) : (
+        <div className="card p-8 text-center">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <LogIn className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Sign in to answer</h3>
+            <p className="text-gray-600 mb-6">
+              You need to be signed in to write an answer to this question.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                to="/login"
+                state={{ from: { pathname: `/question/${questionId}` } }}
+                className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              >
+                Sign in to answer
+              </Link>
+              <Link
+                to="/signup"
+                state={{ from: { pathname: `/question/${questionId}` } }}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium transition-colors"
+              >
+                Create account
+              </Link>
+            </div>
           </div>
-        </form>
-      </div>
+        </div>
+      )}
     </div>
   );
 };

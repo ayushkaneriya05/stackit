@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -13,6 +13,10 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get the page user was trying to access before login
+  const from = location.state?.from?.pathname || '/questions';
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -59,7 +63,8 @@ const Login = () => {
       
       if (result.success) {
         toast.success('Successfully logged in!');
-        navigate('/questions');
+        // Redirect to the page they were trying to access, or questions page as default
+        navigate(from, { replace: true });
       } else {
         setErrors({ general: result.error || 'Invalid email or password. Please try again.' });
       }
@@ -88,6 +93,13 @@ const Login = () => {
           <p className="mt-2 text-gray-600">
             Sign in to your account to continue
           </p>
+          {from !== '/questions' && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                Please sign in to access <strong>{from === '/ask' ? 'Ask Question' : 'this page'}</strong>
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Login Form */}

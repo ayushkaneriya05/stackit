@@ -68,16 +68,16 @@ const Navbar = () => {
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          {/* Logo and main navigation */}
-          <div className="flex items-center">
+        <div className="flex items-center justify-between h-16">
+          {/* Left side - Logo and navigation */}
+          <div className="flex items-center space-x-8">
             <Link to="/" className="flex items-center">
-              <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white px-4 py-2 rounded-lg font-bold text-xl mr-8 shadow-lg hover:shadow-xl transition-shadow">
+              <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white px-4 py-2 rounded-lg font-bold text-xl shadow-lg hover:shadow-xl transition-shadow">
                 StackIt
               </div>
             </Link>
             
-            <div className="hidden md:flex space-x-8">
+            <div className="hidden md:flex space-x-6">
               <Link
                 to="/questions"
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive('/questions')}`}
@@ -105,8 +105,8 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Search bar */}
-          <div className="hidden md:flex flex-1 max-w-lg mx-8">
+          {/* Center - Search bar */}
+          <div className="hidden md:flex flex-1 justify-center max-w-md mx-8">
             <form onSubmit={handleSearch} className="w-full">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -121,7 +121,7 @@ const Navbar = () => {
             </form>
           </div>
 
-          {/* Right side navigation */}
+          {/* Right side - User actions */}
           <div className="flex items-center space-x-4">
             {/* Mobile menu button */}
             <button
