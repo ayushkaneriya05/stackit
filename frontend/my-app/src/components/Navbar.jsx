@@ -53,8 +53,8 @@ const Navbar = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // In a real app, this would navigate to search results
-      toast.info(`Searching for: ${searchQuery}`);
+      // Navigate to search results page with query parameter
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 

@@ -2,12 +2,19 @@ import { useState } from 'react';
 import { formatTimeAgo } from '../utils/helpers';
 import VotingButtons from './VotingButtons';
 import { CheckCircle, MessageSquare, Share2, Flag, User } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
 const AnswerCard = ({ answer, isAccepted = false, onAccept }) => {
   const [showComments, setShowComments] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   const handleAccept = () => {
+    if (!isAuthenticated) {
+      toast.error('Please sign in to accept answers');
+      return;
+    }
+    
     if (onAccept) {
       onAccept(answer.id);
       toast.success('Answer marked as accepted!');
@@ -44,7 +51,7 @@ const AnswerCard = ({ answer, isAccepted = false, onAccept }) => {
             }}
           />
           
-          {!isAccepted && onAccept && (
+          {!isAccepted && onAccept && isAuthenticated && (
             <button
               onClick={handleAccept}
               className="p-2 text-gray-400 hover:text-green-500 hover:bg-green-50 rounded-lg transition-colors"

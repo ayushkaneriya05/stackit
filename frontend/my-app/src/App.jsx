@@ -11,6 +11,8 @@ import Tags from './pages/Tags';
 import Users from './pages/Users';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import SearchResults from './pages/SearchResults';
 
 function App() {
   return (
@@ -35,6 +37,8 @@ function App() {
               <Route path="/users" element={<Users />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/search" element={<SearchResults />} />
             </Routes>
           </main>
           
