@@ -20,4 +20,10 @@ from django.urls import path, include
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    # Modular API routes
+    path("api/users/", include("users.urls")),
+    path("api/questions/", include("questions.urls")),
+    path("api/answers/", include("answers.urls")),
+    path("api/notifications/", include("notifications.urls")),
+    path("api/moderation/", include("admin_panel.urls")),
 ]
