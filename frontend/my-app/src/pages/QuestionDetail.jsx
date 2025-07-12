@@ -20,8 +20,10 @@ import {
 
 const QuestionDetail = () => {
   const { id } = useParams();
-  const question = questions.find(q => q.id === parseInt(id));
-  const questionAnswers = answers.filter(a => a.questionId === parseInt(id));
+  // Convert id to number for proper comparison
+  const questionId = parseInt(id);
+  const question = questions.find(q => q.id === questionId);
+  const questionAnswers = answers.filter(a => a.questionId === questionId);
   const [newAnswer, setNewAnswer] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -31,6 +33,7 @@ const QuestionDetail = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900">Question not found</h1>
+          <p className="text-gray-600 mt-2">The question you're looking for doesn't exist or has been removed.</p>
           <Link to="/questions" className="text-primary-600 hover:text-primary-700 mt-4 inline-block">
             Back to questions
           </Link>
@@ -54,7 +57,7 @@ const QuestionDetail = () => {
       
       const newAnswerObj = {
         id: Date.now(),
-        questionId: parseInt(id),
+        questionId: questionId,
         content: newAnswer,
         author: currentUser,
         votes: 0,

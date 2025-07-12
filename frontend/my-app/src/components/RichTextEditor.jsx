@@ -1,6 +1,4 @@
-import { useState, useRef } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import { useState } from 'react';
 import { 
   Bold, 
   Italic, 
@@ -16,37 +14,23 @@ import {
 } from 'lucide-react';
 
 const RichTextEditor = ({ value, onChange, placeholder = "Write your content here..." }) => {
-  const quillRef = useRef(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕'];
 
-  const modules = {
-    toolbar: {
-      container: [
-        [{ 'header': [1, 2, 3, false] }],
-        ['bold', 'italic', 'strike'],
-        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-        [{ 'align': [] }],
-        ['link', 'image'],
-        ['clean']
-      ]
-    }
-  };
-
-  const formats = [
-    'header', 'bold', 'italic', 'strike',
-    'list', 'bullet', 'align',
-    'link', 'image'
-  ];
-
   const insertEmoji = (emoji) => {
-    const quill = quillRef.current.getEditor();
-    const range = quill.getSelection();
-    const position = range ? range.index : 0;
-    quill.insertText(position, emoji);
-    quill.setSelection(position + emoji.length);
+    const textarea = document.getElementById('rich-text-editor');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const newValue = value.substring(0, start) + emoji + value.substring(end);
+    onChange(newValue);
     setShowEmojiPicker(false);
+    
+    // Set cursor position after emoji
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+    }, 0);
   };
 
   const handleImageUpload = () => {
@@ -58,17 +42,56 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
     input.onchange = () => {
       const file = input.files[0];
       if (file) {
-        // In a real app, you would upload to a server and get back a URL
         const reader = new FileReader();
         reader.onload = (e) => {
-          const quill = quillRef.current.getEditor();
-          const range = quill.getSelection();
-          const position = range ? range.index : 0;
-          quill.insertEmbed(position, 'image', e.target.result);
+          const textarea = document.getElementById('rich-text-editor');
+          const start = textarea.selectionStart;
+          const imageMarkdown = `![${file.name}](${e.target.result})`;
+          const newValue = value.substring(0, start) + imageMarkdown + value.substring(start);
+          onChange(newValue);
         };
         reader.readAsDataURL(file);
       }
     };
+  };
+
+  const insertFormat = (format) => {
+    const textarea = document.getElementById('rich-text-editor');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = value.substring(start, end);
+    
+    let newText = '';
+    switch (format) {
+      case 'bold':
+        newText = `**${selectedText}**`;
+        break;
+      case 'italic':
+        newText = `*${selectedText}*`;
+        break;
+      case 'strike':
+        newText = `~~${selectedText}~~`;
+        break;
+      case 'bullet':
+        newText = selectedText ? selectedText.split('\n').map(line => `- ${line}`).join('\n') : '- ';
+        break;
+      case 'ordered':
+        newText = selectedText ? selectedText.split('\n').map((line, index) => `${index + 1}. ${line}`).join('\n') : '1. ';
+        break;
+      case 'link':
+        const url = prompt('Enter URL:');
+        if (url) {
+          newText = `[${selectedText || 'link'}](${url})`;
+        } else {
+          return;
+        }
+        break;
+      default:
+        return;
+    }
+    
+    const newValue = value.substring(0, start) + newText + value.substring(end);
+    onChange(newValue);
   };
 
   return (
@@ -79,30 +102,24 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
           <button
             type="button"
             className="p-1 hover:bg-gray-200 rounded"
-            onClick={() => {
-              const quill = quillRef.current.getEditor();
-              quill.format('bold', !quill.getFormat().bold);
-            }}
+            onClick={() => insertFormat('bold')}
+            title="Bold"
           >
             <Bold className="w-4 h-4" />
           </button>
           <button
             type="button"
             className="p-1 hover:bg-gray-200 rounded"
-            onClick={() => {
-              const quill = quillRef.current.getEditor();
-              quill.format('italic', !quill.getFormat().italic);
-            }}
+            onClick={() => insertFormat('italic')}
+            title="Italic"
           >
             <Italic className="w-4 h-4" />
           </button>
           <button
             type="button"
             className="p-1 hover:bg-gray-200 rounded"
-            onClick={() => {
-              const quill = quillRef.current.getEditor();
-              quill.format('strike', !quill.getFormat().strike);
-            }}
+            onClick={() => insertFormat('strike')}
+            title="Strikethrough"
           >
             <Strikethrough className="w-4 h-4" />
           </button>
@@ -112,20 +129,16 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
           <button
             type="button"
             className="p-1 hover:bg-gray-200 rounded"
-            onClick={() => {
-              const quill = quillRef.current.getEditor();
-              quill.format('list', 'bullet');
-            }}
+            onClick={() => insertFormat('bullet')}
+            title="Bullet List"
           >
             <List className="w-4 h-4" />
           </button>
           <button
             type="button"
             className="p-1 hover:bg-gray-200 rounded"
-            onClick={() => {
-              const quill = quillRef.current.getEditor();
-              quill.format('list', 'ordered');
-            }}
+            onClick={() => insertFormat('ordered')}
+            title="Numbered List"
           >
             <ListOrdered className="w-4 h-4" />
           </button>
@@ -135,30 +148,21 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
           <button
             type="button"
             className="p-1 hover:bg-gray-200 rounded"
-            onClick={() => {
-              const quill = quillRef.current.getEditor();
-              quill.format('align', 'left');
-            }}
+            title="Align Left"
           >
             <AlignLeft className="w-4 h-4" />
           </button>
           <button
             type="button"
             className="p-1 hover:bg-gray-200 rounded"
-            onClick={() => {
-              const quill = quillRef.current.getEditor();
-              quill.format('align', 'center');
-            }}
+            title="Align Center"
           >
             <AlignCenter className="w-4 h-4" />
           </button>
           <button
             type="button"
             className="p-1 hover:bg-gray-200 rounded"
-            onClick={() => {
-              const quill = quillRef.current.getEditor();
-              quill.format('align', 'right');
-            }}
+            title="Align Right"
           >
             <AlignRight className="w-4 h-4" />
           </button>
@@ -168,16 +172,8 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
           <button
             type="button"
             className="p-1 hover:bg-gray-200 rounded"
-            onClick={() => {
-              const url = prompt('Enter URL:');
-              if (url) {
-                const quill = quillRef.current.getEditor();
-                const range = quill.getSelection();
-                if (range) {
-                  quill.format('link', url);
-                }
-              }
-            }}
+            onClick={() => insertFormat('link')}
+            title="Insert Link"
           >
             <Link className="w-4 h-4" />
           </button>
@@ -185,6 +181,7 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
             type="button"
             className="p-1 hover:bg-gray-200 rounded"
             onClick={handleImageUpload}
+            title="Insert Image"
           >
             <Image className="w-4 h-4" />
           </button>
@@ -193,6 +190,7 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
               type="button"
               className="p-1 hover:bg-gray-200 rounded"
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              title="Insert Emoji"
             >
               <Smile className="w-4 h-4" />
             </button>
@@ -216,37 +214,20 @@ const RichTextEditor = ({ value, onChange, placeholder = "Write your content her
         </div>
       </div>
 
-      {/* Quill Editor */}
-      <ReactQuill
-        ref={quillRef}
-        theme="snow"
+      {/* Textarea Editor */}
+      <textarea
+        id="rich-text-editor"
         value={value}
-        onChange={onChange}
+        onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        modules={modules}
-        formats={formats}
-        className="rich-text-editor"
+        className="w-full border border-gray-300 rounded-b-lg p-4 min-h-[200px] resize-y focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-mono text-sm"
+        style={{ borderTop: 'none' }}
       />
 
-      <style jsx global>{`
-        .rich-text-editor .ql-toolbar {
-          display: none;
-        }
-        .rich-text-editor .ql-container {
-          border-top: none;
-          border-bottom-left-radius: 0.5rem;
-          border-bottom-right-radius: 0.5rem;
-        }
-        .rich-text-editor .ql-editor {
-          min-height: 200px;
-          font-size: 14px;
-          line-height: 1.6;
-        }
-        .rich-text-editor .ql-editor.ql-blank::before {
-          font-style: normal;
-          color: #9ca3af;
-        }
-      `}</style>
+      {/* Helper text */}
+      <div className="mt-2 text-xs text-gray-500">
+        <p>Supports Markdown: **bold**, *italic*, ~~strikethrough~~, [links](url), ![images](url), - lists, 1. numbered lists</p>
+      </div>
     </div>
   );
 };

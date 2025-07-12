@@ -32,7 +32,7 @@ const QuestionCard = ({ question }) => {
             <div className="flex-1">
               <Link
                 to={`/question/${question.id}`}
-                className="text-xl font-semibold text-primary-600 hover:text-primary-700 transition-colors line-clamp-2"
+                className="text-xl font-semibold text-primary-600 hover:text-primary-700 transition-colors line-clamp-2 block mb-2"
               >
                 {question.title}
               </Link>

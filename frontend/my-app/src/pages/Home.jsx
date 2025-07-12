@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { questions } from '../data/mockData';
 import QuestionCard from '../components/QuestionCard';
 
@@ -41,9 +42,9 @@ const Home = () => {
         </div>
         
         <div className="mt-4 sm:mt-0">
-          <button className="btn-primary">
+          <Link to="/ask" className="btn-primary">
             Ask Question
-          </button>
+          </Link>
         </div>
       </div>
 
