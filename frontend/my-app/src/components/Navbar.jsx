@@ -175,11 +175,10 @@ const Navbar = () => {
                     }}
                     className="profile-button flex items-center space-x-2 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                   >
-                    <img
-                      src={user?.avatar || currentUser.avatar}
-                      alt={user?.name || currentUser.name}
-                      className="w-8 h-8 rounded-full ring-2 ring-gray-200 hover:ring-primary-300 transition-all"
-                    />
+                  <div className="w-8 h-8 flex items-center justify-center rounded-full bg-primary-600 text-white font-semibold ring-2 ring-gray-200 hover:ring-primary-300 transition-all">
+                    {user?.username?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                  </div>
+
                     <span className="hidden md:block text-sm font-medium">{user?.username || currentUser.username}</span>
                     <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

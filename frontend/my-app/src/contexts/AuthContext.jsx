@@ -33,54 +33,90 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = async (credentials) => {
+  const login = async ({ email, password }) => {
     try {
-      // TODO: Replace with actual API call
-      console.log('Logging in with:', credentials);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo purposes, simulate successful login
-      const mockToken = 'mock-jwt-token-' + Date.now();
-      localStorage.setItem('authToken', mockToken);
-      
-      setUser(currentUser);
-      setIsAuthenticated(true);
-      
-      return { success: true };
+      const response = await fetch('http://127.0.0.1:8000/api/signin/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          // Django uses `username`, not email by default
+          username: email,
+          password: password
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store tokens in localStorage (or cookies if needed)
+        localStorage.setItem('accessToken', data.access);
+        localStorage.setItem('refreshToken', data.refresh);
+
+        // Save user info from token response
+        const user = {
+          username: data.username,
+          email: data.email,
+          isAdmin: data.is_admin
+        };
+
+        setUser({
+          username: data.name, // use real name instead of username
+          email: data.email,
+          avatar: null // since you don’t want a real image
+        });
+        setIsAuthenticated(true);
+
+        return { success: true };
+      } else {
+        return { success: false, error: data.detail || 'Invalid credentials' };
+      }
     } catch (error) {
       console.error('Login error:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: 'Server error. Try again later.' };
     }
   };
 
   const signup = async (userData) => {
     try {
-      // TODO: Replace with actual API call
-      console.log('Signing up with:', userData);
+      const response = await fetch('http://127.0.0.1:8000/api/signup/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username: userData.username,
+          email: userData.email,
+          password: userData.password
+        })
+      });
+
+      const data = await response.json();
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo purposes, simulate successful signup
-      const mockToken = 'mock-jwt-token-' + Date.now();
-      localStorage.setItem('authToken', mockToken);
-      
-      const newUser = {
-        ...currentUser,
-        username: userData.username,
-        email: userData.email,
-        name: userData.username
-      };
-      
-      setUser(newUser);
-      setIsAuthenticated(true);
-      
-      return { success: true };
+      if (response.ok) {
+        // Auto-login
+        const loginResult = await login({ email: userData.email, password: userData.password });
+        if (loginResult.success) {
+          return { success: true };
+        } else {
+          return { success: false, error: 'Signup succeeded, but auto-login failed.' };
+        }
+      }
+       else {
+        const errorMsg =
+          data?.email?.[0] || data?.username?.[0] || data?.password?.[0] || 'Signup failed.';
+        return { success: false, error: errorMsg };
+      }
     } catch (error) {
-      console.error('Signup error:', error);
-      return { success: false, error: error.message };
+      if (!response.ok) {
+      console.log('Error response:', data);
+
+      const errorMsg =
+        data?.email?.[0] || data?.username?.[0] || data?.password?.[0] || data?.detail || 'Signup failed.';
+
+      return { success: false, error: errorMsg };
+    }
     }
   };
 

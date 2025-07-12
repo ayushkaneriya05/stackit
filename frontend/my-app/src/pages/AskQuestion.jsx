@@ -1,23 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RichTextEditor from '../components/RichTextEditor';
 import TagInput from '../components/TagInput';
-import { currentUser } from '../data/mockData';
 import toast from 'react-hot-toast';
 import { Save, Eye, AlertCircle } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const AskQuestion = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, token } = useAuth();
+  console.log("Token from AuthContext:", token);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [selectedTags, setSelectedTags] = useState([]);
+  const [tags, setTags] = useState([]); // all available tags
+  const [selectedTags, setSelectedTags] = useState([]); // selected tag objects
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // Fetch tags from backend
+  useEffect(() => {
+    fetch('http://localhost:8000/api/questions/tags/')
+      .then(res => res.json())
+      .then(data => setTags(data))
+      .catch(err => console.error("Failed to fetch tags:", err));
+  }, []);
+
+
+  // Form validation
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!title.trim()) {
       newErrors.title = 'Title is required';
     } else if (title.length < 10) {
@@ -42,9 +55,10 @@ const AskQuestion = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Form submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       toast.error('Please fix the errors before submitting');
       return;
@@ -53,28 +67,30 @@ const AskQuestion = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Create new question object
-      const newQuestion = {
-        id: Date.now(),
-        title: title.trim(),
-        content: content,
-        author: currentUser,
-        tags: selectedTags,
-        votes: 0,
-        answers: 0,
-        views: 0,
-        createdAt: new Date().toISOString(),
-        isAnswered: false
-      };
+      const res = await fetch('http://localhost:8000/api/questions/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          title: title.trim(),
+          content,
+          tag_ids: selectedTags.map(tag => tag.id)
+        })
+      });
 
-      toast.success('Question published successfully!');
-      navigate('/questions');
-    } catch (error) {
-      console.error('Failed to create question:', error);
-      toast.error('Failed to publish question. Please try again.');
+      if (res.ok) {
+        toast.success('Question posted successfully!');
+        navigate('/questions');
+      } else {
+        const data = await res.json();
+        console.error(data);
+        toast.error('Failed to post question');
+      }
+    } catch (err) {
+      console.error('Error submitting question:', err);
+      toast.error('Network error');
     } finally {
       setIsSubmitting(false);
     }
@@ -115,18 +131,13 @@ const AskQuestion = () => {
           <label htmlFor="title" className="block text-lg font-semibold text-gray-900 mb-2">
             Question Title *
           </label>
-          <p className="text-sm text-gray-600 mb-4">
-            Be specific and imagine you're asking a question to another person.
-          </p>
           <input
             type="text"
             id="title"
             value={title}
             onChange={(e) => {
               setTitle(e.target.value);
-              if (errors.title) {
-                setErrors({ ...errors, title: null });
-              }
+              if (errors.title) setErrors({ ...errors, title: null });
             }}
             placeholder="e.g., How do I implement authentication in React with JWT tokens?"
             className={`w-full px-4 py-3 border rounded-lg text-lg font-medium transition-colors ${
@@ -159,10 +170,6 @@ const AskQuestion = () => {
               <span>{showPreview ? 'Edit' : 'Preview'}</span>
             </button>
           </div>
-          <p className="text-sm text-gray-600 mb-4">
-            Include all the information someone would need to answer your question.
-          </p>
-          
           {showPreview ? (
             <div className="border border-gray-300 rounded-lg p-4 min-h-[200px] bg-gray-50">
               <h4 className="text-sm font-medium text-gray-700 mb-2">Preview:</h4>
@@ -176,14 +183,11 @@ const AskQuestion = () => {
               value={content}
               onChange={(value) => {
                 setContent(value);
-                if (errors.content) {
-                  setErrors({ ...errors, content: null });
-                }
+                if (errors.content) setErrors({ ...errors, content: null });
               }}
               placeholder="Describe your problem in detail. Include what you've tried, error messages, and relevant code snippets..."
             />
           )}
-          
           {errors.content && (
             <p className="text-red-600 text-sm mt-2">{errors.content}</p>
           )}
@@ -194,21 +198,15 @@ const AskQuestion = () => {
           <label className="block text-lg font-semibold text-gray-900 mb-2">
             Tags *
           </label>
-          <p className="text-sm text-gray-600 mb-4">
-            Add tags to describe what your question is about. Maximum 5 tags.
-          </p>
-          
           <TagInput
+            availableTags={tags}
             selectedTags={selectedTags}
-            onTagsChange={(tags) => {
-              setSelectedTags(tags);
-              if (errors.tags) {
-                setErrors({ ...errors, tags: null });
-              }
+            onTagsChange={(newTags) => {
+              setSelectedTags(newTags);
+              if (errors.tags) setErrors({ ...errors, tags: null });
             }}
             maxTags={5}
           />
-          
           {errors.tags && (
             <p className="text-red-600 text-sm mt-2">{errors.tags}</p>
           )}
