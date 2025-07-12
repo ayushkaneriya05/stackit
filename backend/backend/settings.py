@@ -37,16 +37,16 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "users",
-    "questions",
-    "answers",
-    "notifications",
-    "admin_panel",
-    "rest_framework",
     "corsheaders",
+    'users',
+    'questions',
+    'rest_framework',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # 👈 Add this at the TOP
+    'django.middleware.common.CommonMiddleware',
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -127,3 +127,18 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+# 👇 Allow frontend origin (Vite dev server runs on 5173)
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # ✅ React dev server
+    "http://127.0.0.1:5173",
+]
+
+# Optional: Allow all origins temporarily during development
+CORS_ALLOW_ALL_ORIGINS = True

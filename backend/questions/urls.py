@@ -1,4 +1,7 @@
-from django.contrib import admin
-from django.urls import path, include
+from django.urls import path
+from .views import QuestionListCreateView, TagListAPIView
 
-urlpatterns = []
+urlpatterns = [
+    path('', QuestionListCreateView.as_view(), name='questions-list-create'),
+    path('tags/', TagListAPIView.as_view(), name='tag-list'),
+]
